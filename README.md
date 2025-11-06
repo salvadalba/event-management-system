@@ -1,341 +1,379 @@
-# Event Management System
+# 🎫 Event Management Pro
 
-A comprehensive event management system built with Node.js, Express, PostgreSQL, and React. This system facilitates end-to-end event planning, execution, and analysis with features for event creation, attendee registration, ticketing, check-in management, communication, and analytics.
+A comprehensive, modern event management platform built with React, Node.js, and TypeScript. Features complete event lifecycle management, real-time analytics, registration systems, and professional check-in capabilities.
 
-## Features
+![Event Management](https://img.shields.io/badge/React-18-blue)
+![Node](https://img.shields.io/badge/Node.js-18-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.9-blue)
+![Tailwind](https://img.shields.io/badge/Tailwind-3.0-38B2AC)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-### Core System Modules
+## ✨ Features
 
-- **Event Creation & Management**: Create events with detailed forms, multiple statuses (draft, published, canceled), and event duplication
-- **Attendee Registration & Ticketing**: Customizable registration forms, multiple ticket types, secure payment processing, and waitlist functionality
-- **Check-in & On-site Management**: Mobile-friendly QR code scanning, real-time check-in status updates, and badge generation
-- **Communication Hub**: Bulk email messaging, pre/post-event email templates, and engagement tracking
-- **Reporting & Analytics**: Registration trends, revenue tracking, attendance metrics, and data export capabilities
+### 🎯 Core Event Management
+- **Full CRUD Operations** - Create, read, update, delete events
+- **Advanced Filtering** - Search by title, description, location, status
+- **Event Status Management** - Draft, published, featured events
+- **Venue Management** - Multiple venue support with capacity tracking
+- **Tag System** - Categorize events with flexible tags
 
-### User Roles & Permissions
+### 🎟️ Registration & Ticketing
+- **Multi-tier Ticketing** - General, VIP, Student, Early Bird tickets
+- **Real-time Registration** - Live attendee tracking and capacity management
+- **QR Code Generation** - Automatic QR codes for check-in management
+- **Registration Status** - Pending, confirmed, checked-in states
+- **Attendee Analytics** - Comprehensive registration data and insights
 
-- **Super Administrator**: Full system access, user management, system configuration
-- **Event Manager**: Create/manage events, view analytics, manage attendees
-- **Check-in Staff**: Mobile check-in interface, attendee verification
+### 📊 Analytics Dashboard
+- **Real-time Metrics** - Live event statistics and performance data
+- **Revenue Tracking** - Financial insights and ticket sales analytics
+- **Attendance Analytics** - Check-in rates and attendance patterns
+- **Monthly Performance** - Trend analysis and growth metrics
+- **Top Performing Events** - Ranking and performance comparison
 
-## Tech Stack
+### 💬 Communication System
+- **Email Campaigns** - Targeted communication with event attendees
+- **Template Management** - Pre-built and custom email templates
+- **Bulk Messaging** - Send notifications to specific attendee groups
+- **Campaign Tracking** - Monitor communication effectiveness
+- **Scheduled Communications** - Plan and automate message delivery
 
-- **Frontend**: React.js with modern hooks and state management
-- **Backend**: Node.js with Express.js framework
-- **Database**: PostgreSQL with proper indexing and relationships
-- **Authentication**: JWT-based authentication with role-based access control
-- **Payments**: Stripe integration for secure payment processing
-- **File Storage**: Local/cloud storage for event assets
-- **Email**: Nodemailer with template support
-- **QR Codes**: qrcode library for ticket generation
+### 🔐 Security & Admin
+- **Role-based Access Control** - Admin, event manager, check-in staff roles
+- **JWT Authentication** - Secure token-based authentication system
+- **Admin-only Registration** - Controlled user account creation
+- **API Security** - Protected endpoints with middleware
+- **Data Validation** - Input sanitization and validation
 
-## Prerequisites
+### 📱 User Experience
+- **Responsive Design** - Mobile-first, works on all devices
+- **Real-time Updates** - Live data synchronization
+- **Intuitive Dashboard** - Clean, professional interface
+- **Search & Discovery** - Powerful event search functionality
+- **Performance Optimized** - Fast loading and smooth interactions
 
-- Node.js (v18 or higher)
-- PostgreSQL (v12 or higher)
-- npm or yarn
-- Redis (optional, for caching)
+## 🛠️ Technology Stack
 
-## Installation
+### Frontend
+- **React 18** - Modern component-based UI
+- **TypeScript** - Type-safe development
+- **Redux Toolkit** - State management
+- **Tailwind CSS** - Utility-first styling
+- **Vite** - Fast build tool and dev server
+- **React Router** - Client-side routing
+- **React Hot Toast** - Elegant notifications
 
-### 1. Clone the Repository
+### Backend
+- **Node.js 18** - Server runtime
+- **Express.js** - Web framework
+- **TypeScript** - Type-safe backend development
+- **SQLite** - Database (PostgreSQL-ready schema)
+- **JWT** - Authentication tokens
+- **bcrypt** - Password hashing
+- **UUID** - Unique identifier generation
+- **CORS** - Cross-origin resource sharing
 
+### DevOps & Tools
+- **Git** - Version control
+- **GitHub Actions** - CI/CD pipeline
+- **ESLint** - Code quality
+- **Prettier** - Code formatting
+- **NPM** - Package management
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+
+- NPM or Yarn
+- Git
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/salvadalba/event-management-system.git
 cd event-management-system
 ```
 
-### 2. Install Dependencies
-
+2. **Install dependencies**
 ```bash
-# Install backend dependencies
+# Install root dependencies
 npm install
 
-# Install frontend dependencies (if using separate client directory)
-cd client
-npm install
-cd ..
+# Install client dependencies
+cd client && npm install
+
+# Install server dependencies
+cd ../server && npm install
 ```
 
-### 3. Database Setup
-
-1. Create a PostgreSQL database:
-```sql
-CREATE DATABASE event_management;
-CREATE USER event_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE event_management TO event_user;
-```
-
-2. Set up environment variables:
+3. **Environment Configuration**
 ```bash
-cp .env.example .env
+# Copy environment template
+cp server/.env.example server/.env
+
+# Edit environment variables
+nano server/.env
 ```
 
-Edit the `.env` file with your database credentials:
+### Environment Variables
 ```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=event_management
-DB_USER=event_user
-DB_PASSWORD=your_password
-```
-
-### 4. Run Database Migrations
-
-```bash
-npm run migrate
-```
-
-### 5. Seed the Database (Optional)
-
-```bash
-npm run seed
-```
-
-This will create sample data including:
-- A super admin user (admin@example.com / admin123)
-- Event managers (manager[1-3]@example.com / manager123)
-- Check-in staff (staff[1-5]@example.com / staff123)
-- Sample events and tickets
-
-### 6. Configure Environment Variables
-
-Update the `.env` file with your configuration:
-
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
 # Database Configuration
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=event_management
-DB_USER=event_user
+DB_USER=postgres
 DB_PASSWORD=your_password
 
 # JWT Configuration
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRE=7d
-JWT_REFRESH_SECRET=your_refresh_token_secret_here
-JWT_REFRESH_EXPIRE=30d
+JWT_SECRET=your-super-secret-jwt-key
+REFRESH_TOKEN_SECRET=your-super-secret-refresh-key
 
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password_here
-
-# Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
-STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+# Server Configuration
+PORT=5001
+NODE_ENV=development
 ```
 
-## Running the Application
+### Running the Application
 
-### Development Mode
-
+1. **Start the backend server**
 ```bash
-# Start backend server
+cd server
 npm run dev
-
-# In another terminal, start frontend (if applicable)
-cd client
-npm start
 ```
+Server runs on `http://localhost:5001`
 
-The backend server will run on `http://localhost:5000`
-The frontend will run on `http://localhost:3000`
-
-### Production Mode
-
+2. **Start the frontend application**
 ```bash
-# Build the application
-npm run build
+cd client
+npm run dev
+```
+Application runs on `http://localhost:3000`
 
-# Start production server
-npm start
+### Default Login
+- **Email**: admin@eventmanager.com
+- **Password**: admin123
+
+## 📱 Usage
+
+### Creating Events
+1. Navigate to Events → Create Event
+2. Fill in event details (title, description, venue, capacity)
+3. Add ticket types and pricing
+4. Set event dates and tags
+5. Publish your event
+
+### Managing Registrations
+1. View event registrations in the Registrations tab
+2. Monitor attendee check-in status
+3. Generate QR codes for event entry
+4. Export registration data
+
+### Analytics & Insights
+1. Access the Analytics dashboard
+2. Monitor real-time event metrics
+3. Track revenue and attendance
+4. View performance trends
+
+### Communication
+1. Create email campaigns for events
+2. Target specific attendee segments
+3. Schedule automated communications
+4. Track campaign performance
+
+## 🏗️ Project Structure
+
+```
+event-management-system/
+├── client/                 # React frontend
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── store/         # Redux store
+│   │   ├── services/      # API services
+│   │   └── types/         # TypeScript types
+│   ├── public/
+│   └── package.json
+├── server/                # Node.js backend
+│   ├── database/         # Database schemas
+│   ├── comprehensive-server.js  # Main server file
+│   └── package.json
+├── shared/               # Shared types and utilities
+├── docs/                 # Documentation
+└── README.md
 ```
 
-## API Documentation
+## 🎯 API Endpoints
 
-### Authentication Endpoints
-
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/refresh` - Refresh JWT token
+### Authentication
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
 - `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - Logout user
+- `POST /api/auth/logout` - User logout
 
-### User Management Endpoints
-
-- `GET /api/users` - Get all users (admin only)
-- `GET /api/users/:id` - Get user by ID
-- `PUT /api/users/:id` - Update user profile
-- `PUT /api/users/:id/password` - Change password
-- `PUT /api/users/:id/role` - Update user role (admin only)
-- `PUT /api/users/:id/status` - Activate/deactivate user (admin only)
-
-### Event Management Endpoints
-
-- `GET /api/events` - List events with filtering
-- `POST /api/events` - Create new event
+### Events
+- `GET /api/events` - List all events
 - `GET /api/events/:id` - Get event details
+- `POST /api/events` - Create new event
 - `PUT /api/events/:id` - Update event
 - `DELETE /api/events/:id` - Delete event
-- `POST /api/events/:id/duplicate` - Duplicate event
 
-### Ticket Management Endpoints
+### Registrations
+- `GET /api/registrations` - List registrations
+- `POST /api/registrations` - Create registration
+- `POST /api/registrations/:id/checkin` - Check-in attendee
 
-- `GET /api/events/:id/tickets` - Get event tickets
-- `POST /api/events/:id/tickets` - Create ticket type
-- `PUT /api/tickets/:id` - Update ticket
-- `DELETE /api/tickets/:id` - Delete ticket
+### Analytics
+- `GET /api/analytics/overview` - Get analytics dashboard data
 
-### Registration Endpoints
-
-- `POST /api/events/:id/register` - Register for event
-- `GET /api/registrations` - Get registrations (filtered)
-- `GET /api/registrations/:id` - Get registration details
-- `PUT /api/registrations/:id` - Update registration
-- `DELETE /api/registrations/:id` - Cancel registration
-
-### Payment Endpoints
-
-- `POST /api/payments/create-intent` - Create payment intent
-- `POST /api/payments/confirm` - Confirm payment
-- `POST /api/payments/webhook` - Stripe webhook handler
-
-### Check-in Endpoints
-
-- `GET /api/checkin/events/:id` - Get event check-ins
-- `POST /api/checkin/scan` - Scan QR code for check-in
-- `POST /api/checkin/manual` - Manual check-in
-- `GET /api/checkin/stats/:eventId` - Get check-in statistics
-
-### Communication Endpoints
-
-- `GET /api/communications` - Get communications
+### Communications
+- `GET /api/communications` - List communications
 - `POST /api/communications` - Create communication
 - `POST /api/communications/:id/send` - Send communication
-- `GET /api/communications/:id/logs` - Get communication logs
 
-### Analytics Endpoints
+## 🗄️ Database Schema
 
-- `GET /api/analytics/overview` - Get system overview
-- `GET /api/analytics/events/:id` - Get event analytics
-- `GET /api/analytics/trends` - Get registration trends
-- `GET /api/analytics/export` - Export analytics data
+The application uses a comprehensive relational database schema with the following main tables:
 
-## Database Schema
+- **users** - User accounts and authentication
+- **events** - Event information and metadata
+- **venues** - Event venues and locations
+- **tickets** - Event ticket types and pricing
+- **registrations** - Attendee registrations and check-ins
+- **checkins** - Event check-in records
+- **communications** - Email campaigns and messages
+- **analytics** - Performance metrics and insights
 
-The system uses the following main tables:
+The schema is PostgreSQL-ready and includes proper foreign key relationships, indexes, and constraints.
 
-- `users` - User accounts and authentication
-- `events` - Event information and settings
-- `tickets` - Ticket types and pricing
-- `registrations` - Attendee registrations
-- `checkins` - Check-in records
-- `communications` - Email communications
-- `analytics_*` - Various analytics tables
-
-## Development Guidelines
-
-### Code Structure
-
-```
-/
-├── server/                 # Backend application
-│   ├── controllers/        # Route controllers
-│   ├── models/            # Database models
-│   ├── middleware/        # Custom middleware
-│   ├── routes/            # API routes
-│   ├── services/          # Business logic
-│   ├── utils/             # Utility functions
-│   ├── config/            # Configuration files
-│   └── migrations/        # Database migrations
-├── client/                # Frontend React application
-├── shared/                # Shared types and utilities
-├── docs/                  # Documentation
-└── tests/                 # Test files
-```
-
-### Coding Standards
-
-- Use ES6+ syntax
-- Follow RESTful API design principles
-- Implement proper error handling and logging
-- Write unit tests for business logic
-- Use TypeScript for type safety
-- Follow consistent naming conventions
-- Implement proper database transactions
-
-### Security Considerations
-
-- Input validation and sanitization
-- SQL injection prevention
-- XSS protection
-- CSRF protection
-- Rate limiting on API endpoints
-- Secure password hashing
-- Environment variable management
-
-## Testing
+## 🧪 Testing
 
 ```bash
-# Run all tests
+# Run frontend tests
+cd client
 npm test
 
-# Run tests with coverage
+# Run backend tests
+cd server
+npm test
+
+# Run with coverage
 npm run test:coverage
-
-# Run tests in watch mode
-npm run test:watch
 ```
 
-## Deployment
+## 📦 Build & Deployment
 
-### Environment Setup
-
-1. Set production environment variables
-2. Configure production database
-3. Set up SSL certificates
-4. Configure reverse proxy (nginx/Apache)
-5. Set up monitoring and logging
-
-### Database Migration
-
+### Development Build
 ```bash
-# Run production migrations
-NODE_ENV=production npm run migrate
-```
-
-### Build and Deploy
-
-```bash
-# Build production assets
+cd client
 npm run build
-
-# Start production server
-npm start
 ```
 
-## Contributing
+### Production Deployment
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+#### Option 1: Railway + Vercel (Recommended)
+1. **Backend**: Deploy to [Railway](https://railway.app)
+2. **Frontend**: Deploy to [Vercel](https://vercel.com)
+3. **Cost**: ~$5/month total
+4. **Setup time**: 30 minutes
 
-## License
+#### Option 2: GitHub Actions + VPS
+1. **VPS**: Get $5/month VPS (DigitalOcean/Linode)
+2. **CI/CD**: Set up GitHub Actions workflow
+3. **Database**: PostgreSQL on VPS
+4. **Cost**: $5/month + domain
+5. **Setup time**: 1-2 hours
+
+### Docker Deployment
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+```
+
+## 🔧 Configuration
+
+### Frontend Configuration
+```typescript
+// client/src/config/index.ts
+export const API_BASE_URL = process.env.REACT_APP_API_URL || '/api'
+export const APP_NAME = 'Event Management Pro'
+export const VERSION = '1.0.0'
+```
+
+### Backend Configuration
+```typescript
+// server/config/index.ts
+export const config = {
+  port: process.env.PORT || 5001,
+  jwtSecret: process.env.JWT_SECRET,
+  databaseUrl: process.env.DATABASE_URL,
+  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000'
+}
+```
+
+## 🤝 Contributing
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### Development Guidelines
+- Follow TypeScript best practices
+- Use meaningful commit messages
+- Write clean, documented code
+- Test your changes thoroughly
+- Maintain code formatting with Prettier
+
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## 🙏 Acknowledgments
 
-For support and questions, please open an issue in the repository or contact the development team.
+- React team for the amazing framework
+- Tailwind CSS for the utility-first CSS framework
+- Redux Toolkit for state management
+- Express.js for the robust backend framework
+- All contributors and users of this project
 
-## Changelog
+## 📞 Support & Contact
 
-See [CHANGELOG.md](CHANGELOG.md) for a list of changes and version history.
+- **Issues**: [GitHub Issues](https://github.com/salvadalba/event-management-system/issues)
+- **Email**: salvadalba@example.com
+- **Documentation**: [Project Wiki](https://github.com/salvadalba/event-management-system/wiki)
+
+---
+
+<div align="center">
+
+**Built with ❤️ for the event management community**
+
+[⭐ Star this repository](https://github.com/salvadalba/event-management-system) | [🐛 Report issues](https://github.com/salvadalba/event-management-system/issues) | [📖 View documentation](https://github.com/salvadalba/event-management-system/wiki)
+
+</div>
+
+## 📈 Roadmap
+
+### Version 1.1
+- [ ] Mobile application
+- [ ] Payment gateway integration
+- [ ] Advanced reporting
+- [ ] Multi-language support
+
+### Version 1.2
+- [ ] Event calendar view
+- [ ] Social media integration
+- [ ] Advanced analytics
+- [ ] API rate limiting
+
+### Version 2.0
+- [ ] Microservices architecture
+- [ ] Real-time notifications
+- [ ] Mobile push notifications
+- [ ] Advanced user roles
+
+---
+
+**🎉 Thank you for using Event Management Pro! Your feedback and contributions help make this project better.**
