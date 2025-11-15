@@ -38,6 +38,16 @@ app.use(helmet({
 }));
 app.use(compression());
 app.set('etag', 'strong');
+
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+  res.on('finish', () => {
+    const end = process.hrtime.bigint();
+    const ms = Number(end - start) / 1e6;
+    res.setHeader('X-Response-Time', `${ms.toFixed(2)}ms`);
+  });
+  next();
+});
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true
