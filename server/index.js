@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./tracing');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -53,6 +54,18 @@ app.use((req, res, next) => {
   };
   next();
 });
+
+try {
+  const { context, trace } = require('@opentelemetry/api');
+  app.use((req, res, next) => {
+    const span = trace.getSpan(context.active());
+    if (span) {
+      const spanCtx = span.spanContext();
+      res.setHeader('X-Trace-Id', spanCtx.traceId);
+    }
+    next();
+  });
+} catch (_) {}
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   credentials: true

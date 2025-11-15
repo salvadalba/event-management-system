@@ -52,7 +52,11 @@
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "stripe": "^14.7.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/sdk-node": "^0.52.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.52.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.52.1"
   },
   "optionalDependencies": {
     "better-sqlite3": "^8.7.0"
