@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '../store'
 import { logout } from '../store/slices/authSlice'
+import { Helmet } from 'react-helmet-async'
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -93,6 +94,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Main content */}
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <Helmet>
+          <title>{pageTitle}</title>
+          <meta name="description" content="Modern event management platform for events, registrations, check-ins, communications, and analytics." />
+          <meta property="og:title" content={pageTitle} />
+          <meta property="og:type" content="website" />
+        </Helmet>
         <div className="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200">
           <button
             className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 md:hidden"
@@ -147,3 +154,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 }
 
 export default Layout
+  const pageTitle = useMemo(() => {
+    const map: Record<string, string> = {
+      '/dashboard': 'Dashboard',
+      '/events': 'Events',
+      '/registrations': 'Registrations',
+      '/checkin': 'Check-in',
+      '/communications': 'Communications',
+      '/analytics': 'Analytics',
+      '/profile': 'Profile',
+      '/settings': 'Settings',
+    }
+    return `${map[location.pathname] || 'Event Management'} — Event Management Pro`
+  }, [location.pathname])
