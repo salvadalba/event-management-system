@@ -348,7 +348,31 @@ router.post('/:id/send', authenticate, authorize('event_manager', 'super_admin')
       try {
         const trackingId = require('uuid').v4()
         const pixel = `<img src="${baseUrl}/api/tracking/open/${trackingId}" width="1" height="1" style="display:none" />`
-        const htmlContent = `${communication.content}${pixel}`
+        let htmlContent = `${communication.content}${pixel}`
+        if (communication.email_template) {
+          const tplModel = {
+            subject: communication.subject,
+            message: communication.content,
+            event: communication.event_id ? (await pool.query(`
+              SELECT id, title, venue_city, venue_country, start_date, end_date
+              FROM events WHERE id = $1
+            `, [communication.event_id])).rows[0] : null,
+            updates: communication.tags || []
+          }
+          const model = tplModel && tplModel.event ? {
+            subject: tplModel.subject,
+            message: tplModel.message,
+            event: {
+              title: tplModel.event.title,
+              startDate: tplModel.event.start_date,
+              endDate: tplModel.event.end_date,
+              venue: { city: tplModel.event.venue_city, country: tplModel.event.venue_country }
+            },
+            updates: tplModel.updates
+          } : tplModel
+          const { render } = require('../utils/emailTemplates')
+          htmlContent = `${render(communication.email_template, model)}${pixel}`
+        }
         await transporter.sendMail({
           from: `${process.env.FROM_NAME || 'Event Management System'} <${process.env.FROM_EMAIL}>`,
           to: r.email,

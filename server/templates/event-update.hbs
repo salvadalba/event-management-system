@@ -1,0 +1,13 @@
+<div style="font-family:Arial,sans-serif;font-size:14px;color:#111;line-height:1.5;">
+  <h2>Update: {{event.title}}</h2>
+  <p>{{message}}</p>
+  <ul>
+    {{#each updates}}
+      <li>{{this}}</li>
+    {{/each}}
+  </ul>
+  <div style="margin-top:12px;padding:12px;border:1px solid #eee;border-radius:8px;">
+    <div><strong>When:</strong> {{event.startDate}} – {{event.endDate}}</div>
+    <div><strong>Where:</strong> {{event.venue.city}}, {{event.venue.country}}</div>
+  </div>
+</div>
