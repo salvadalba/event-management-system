@@ -62,6 +62,20 @@ class ApiService {
           }
         }
 
+        const shouldRetry = !originalRequest._retrying && (
+          error.code === 'ECONNABORTED' ||
+          (error.response && [429, 500, 502, 503, 504].includes(error.response.status))
+        )
+        if (shouldRetry) {
+          originalRequest._retrying = true
+          const attempt = originalRequest.__retryCount || 0
+          const delay = Math.min(1000 * Math.pow(2, attempt), 8000)
+          await new Promise((resolve) => setTimeout(resolve, delay))
+          originalRequest.__retryCount = attempt + 1
+          if (originalRequest.__retryCount <= 3) {
+            return this.api(originalRequest)
+          }
+        }
         return Promise.reject(error)
       }
     )

@@ -352,6 +352,16 @@ router.post('/:id/send', authenticate, authorize('event_manager', 'super_admin')
           html: communication.content
         })
         sentCount++
+        const regIdRes = await pool.query(
+          'SELECT id FROM registrations WHERE email = $1 AND ($2::uuid IS NULL OR event_id = $2) LIMIT 1',
+          [r.email, communication.event_id || null]
+        )
+        const regId = regIdRes.rows[0]?.id || null
+        await pool.query(
+          `INSERT INTO communication_logs (communication_id, registration_id, recipient_email, recipient_name, status, sent_at)
+           VALUES ($1, $2, $3, $4, 'sent', CURRENT_TIMESTAMP)`,
+          [id, regId, r.email, `${r.first_name || ''} ${r.last_name || ''}`.trim() || null]
+        )
       } catch (_) {}
     }
 
