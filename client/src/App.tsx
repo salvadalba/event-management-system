@@ -18,7 +18,7 @@ import CreateEvent from './pages/events/CreateEvent'
 import EditEvent from './pages/events/EditEvent'
 import RegistrationsList from './pages/registrations/RegistrationsList'
 import RegistrationDetail from './pages/registrations/RegistrationDetail'
-import CheckIn from './pages/checkin/CheckIn'
+import Checkin from './pages/checkin/Checkin'
 import CommunicationsList from './pages/communications/CommunicationsList'
 import CreateCommunication from './pages/communications/CreateCommunication'
 import Analytics from './pages/analytics/Analytics'
@@ -68,7 +68,7 @@ const AppWithLayout: React.FC = () => {
         <Route path="/events/:id/edit" element={<EditEvent />} />
         <Route path="/registrations" element={<RegistrationsList />} />
         <Route path="/registrations/:id" element={<RegistrationDetail />} />
-        <Route path="/checkin" element={<CheckIn />} />
+        <Route path="/checkin" element={<Checkin />} />
         <Route path="/communications" element={<CommunicationsList />} />
         <Route path="/communications/new" element={<CreateCommunication />} />
         <Route path="/analytics" element={<Analytics />} />
