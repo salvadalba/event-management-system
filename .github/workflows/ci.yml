@@ -39,5 +39,12 @@ jobs:
       - name: Setup Playwright
         run: npx playwright install --with-deps
 
+      - name: Start client preview
+        run: nohup npm run preview -- --port 4173 &
+        working-directory: client
+
+      - name: Wait for preview
+        run: sleep 3
+
       - name: Run Playwright tests (public page only)
         run: npx playwright test
