@@ -284,31 +284,55 @@ npm run build
 4. **Cost**: $5/month + domain
 5. **Setup time**: 1-2 hours
 
-### Docker Deployment
+### Docker Deployment (Demo API + Static Frontend)
 ```bash
-# Build and run with Docker Compose
+# Build and run demo API (in-memory) and static frontend
 docker-compose up -d
+
+# Frontend: http://localhost:8080
+# API:      http://localhost:5000/api
 ```
+
+### Production Deployment (Recommended)
+
+#### Frontend (Vercel)
+- Framework preset: `Vite`
+- Build command: `npm run build`
+- Output directory: `client/build`
+- Environment:
+  - `VITE_API_BASE_URL=https://<your-api-host>/api`
+
+#### Backend (Render/Railway)
+- Runtime: `Node 18`
+- Start command: `node server/index.js` (full API) or `node server/demo.js` (demo)
+- Environment:
+  - `PORT=5000`
+  - `CLIENT_URL=https://<your-frontend-host>`
+  - `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_EXPIRE`, `JWT_REFRESH_EXPIRE`
+  - Database vars if using full API (PostgreSQL)
+
+### GitHub Actions CI
+- Located at `.github/workflows/ci.yml`
+- Builds client, runs server tests, and Playwright E2E
+- Can be extended with deployment steps using provider secrets
 
 ## 🔧 Configuration
 
 ### Frontend Configuration
-```typescript
-// client/src/config/index.ts
-export const API_BASE_URL = process.env.REACT_APP_API_URL || '/api'
-export const APP_NAME = 'Event Management Pro'
-export const VERSION = '1.0.0'
+```env
+# client/.env
+VITE_API_BASE_URL=https://<your-api-host>/api
 ```
 
 ### Backend Configuration
-```typescript
-// server/config/index.ts
-export const config = {
-  port: process.env.PORT || 5001,
-  jwtSecret: process.env.JWT_SECRET,
-  databaseUrl: process.env.DATABASE_URL,
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000'
-}
+```env
+PORT=5000
+CLIENT_URL=https://<your-frontend-host>
+JWT_SECRET=<secret>
+JWT_REFRESH_SECRET=<secret>
+JWT_EXPIRE=1h
+JWT_REFRESH_EXPIRE=7d
+# Database vars if using full API
 ```
 
 ## 🤝 Contributing

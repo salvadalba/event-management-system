@@ -43,7 +43,8 @@ const CommunicationsList: React.FC = () => {
     try {
       setLoading(true)
       const response = await communicationsAPI.getAll()
-      setCommunications(response.data || [])
+      const list = response?.data?.communications || response?.data || []
+      setCommunications(Array.isArray(list) ? list : [])
     } catch (error: any) {
       console.error('Fetch communications error:', error)
       toast.error('Failed to load communications')

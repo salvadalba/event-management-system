@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '../store'
@@ -154,16 +154,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 }
 
 export default Layout
-  const pageTitle = useMemo(() => {
-    const map: Record<string, string> = {
-      '/dashboard': 'Dashboard',
-      '/events': 'Events',
-      '/registrations': 'Registrations',
-      '/checkin': 'Check-in',
-      '/communications': 'Communications',
-      '/analytics': 'Analytics',
-      '/profile': 'Profile',
-      '/settings': 'Settings',
-    }
-    return `${map[location.pathname] || 'Event Management'} — Event Management Pro`
-  }, [location.pathname])
+  const map: Record<string, string> = {
+    '/dashboard': 'Dashboard',
+    '/events': 'Events',
+    '/registrations': 'Registrations',
+    '/checkin': 'Check-in',
+    '/communications': 'Communications',
+    '/analytics': 'Analytics',
+    '/profile': 'Profile',
+    '/settings': 'Settings',
+  }
+  const pageTitle = `${map[location.pathname] || 'Event Management'} — Event Management Pro`

@@ -37,7 +37,8 @@ const CreateCommunication: React.FC = () => {
   const fetchEvents = async () => {
     try {
       const response = await eventsAPI.getAll()
-      setEvents(response.data || [])
+      const list = response?.data?.events || response?.data || []
+      setEvents(Array.isArray(list) ? list : [])
     } catch (error: any) {
       console.error('Fetch events error:', error)
       toast.error('Failed to load events')

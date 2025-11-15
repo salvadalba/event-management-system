@@ -50,7 +50,21 @@ const Analytics: React.FC = () => {
     try {
       setLoading(true)
       const response = await analyticsAPI.getOverview()
-      setAnalyticsData(response.data)
+      const raw = response?.data || {}
+      const totals = raw.totals || raw.overview || {}
+      const normalized: AnalyticsData = {
+        overview: {
+          totalEvents: totals.events || totals.totalEvents || 0,
+          totalAttendees: totals.registrations || totals.totalAttendees || 0,
+          totalRevenue: totals.revenue || totals.totalRevenue || 0,
+          averageAttendance: totals.averageAttendance || 0,
+        },
+        eventsByMonth: Array.isArray(raw.eventsByMonth) ? raw.eventsByMonth : [],
+        topEvents: Array.isArray(raw.topEvents) ? raw.topEvents : [],
+        registrationTrends: Array.isArray(raw.registrationTrends) ? raw.registrationTrends : [],
+        attendanceByEventType: Array.isArray(raw.attendanceByEventType) ? raw.attendanceByEventType : [],
+      }
+      setAnalyticsData(normalized)
     } catch (error: any) {
       console.error('Fetch analytics error:', error)
       toast.error('Failed to load analytics data')
@@ -62,7 +76,8 @@ const Analytics: React.FC = () => {
   const fetchEvents = async () => {
     try {
       const response = await eventsAPI.getAll()
-      setEvents(response.data || [])
+      const list = response?.data?.events || response?.data || []
+      setEvents(Array.isArray(list) ? list : [])
     } catch (error: any) {
       console.error('Fetch events error:', error)
     }
