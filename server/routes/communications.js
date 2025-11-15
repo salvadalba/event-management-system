@@ -307,22 +307,68 @@ router.post('/:id/send', authenticate, authorize('event_manager', 'super_admin')
       [id]
     );
 
-    // TODO: Implement actual email sending logic
-    // This would involve:
-    // 1. Get recipient list based on recipient_type
-    // 2. Create email templates
-    // 3. Send emails using nodemailer or email service
-    // 4. Create communication_logs records
-    // 5. Update sent_count, open_count, etc.
+    const nodemailer = require('nodemailer')
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    })
 
-    // For now, just simulate sending
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
+    let recipientsQuery = ''
+    let recipientsParams = []
 
-    // Update status to sent
+    switch (communication.recipient_type) {
+      case 'all':
+        recipientsQuery = `SELECT email, first_name, last_name FROM registrations WHERE event_id = $1 AND status != 'cancelled'`
+        recipientsParams = [communication.event_id]
+        break
+      case 'ticket_type':
+        recipientsQuery = `SELECT email, first_name, last_name FROM registrations WHERE ticket_id = $1 AND status != 'cancelled'`
+        recipientsParams = [communication.ticket_type_id]
+        break
+      case 'waitlist':
+        recipientsQuery = `SELECT email, first_name, last_name FROM registrations WHERE event_id = $1 AND status = 'waitlisted'`
+        recipientsParams = [communication.event_id]
+        break
+      default:
+        recipientsQuery = `SELECT email, first_name, last_name FROM registrations WHERE event_id = $1 AND status != 'cancelled'`
+        recipientsParams = [communication.event_id]
+        break
+    }
+
+    const recRes = await pool.query(recipientsQuery, recipientsParams)
+    let sentCount = 0
+
+    for (const r of recRes.rows) {
+      try {
+        await transporter.sendMail({
+          from: `${process.env.FROM_NAME || 'Event Management System'} <${process.env.FROM_EMAIL}>`,
+          to: r.email,
+          subject: communication.subject,
+          html: communication.content
+        })
+        sentCount++
+        const regIdRes = await pool.query(
+          'SELECT id FROM registrations WHERE email = $1 AND ($2::uuid IS NULL OR event_id = $2) LIMIT 1',
+          [r.email, communication.event_id || null]
+        )
+        const regId = regIdRes.rows[0]?.id || null
+        await pool.query(
+          `INSERT INTO communication_logs (communication_id, registration_id, recipient_email, recipient_name, status, sent_at)
+           VALUES ($1, $2, $3, $4, 'sent', CURRENT_TIMESTAMP)`,
+          [id, regId, r.email, `${r.first_name || ''} ${r.last_name || ''}`.trim() || null]
+        )
+      } catch (_) {}
+    }
+
     await pool.query(
-      'UPDATE communications SET status = \'sent\', sent_count = recipient_count WHERE id = $1',
-      [id]
-    );
+      'UPDATE communications SET status = $1, sent_count = $2, sent_at = CURRENT_TIMESTAMP WHERE id = $3',
+      ['sent', sentCount, id]
+    )
 
     res.json({
       success: true,
