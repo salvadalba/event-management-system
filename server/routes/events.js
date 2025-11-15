@@ -3,6 +3,7 @@ const { body, validationResult, query } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const { pool } = require('../config/database');
 const sanitize = require('../utils/sanitize');
+const cache = require('../utils/cache');
 const { authenticate, authorize, checkEventOwnership } = require('../middleware/auth');
 
 const router = express.Router();
@@ -61,27 +62,34 @@ router.get('/', authenticate, [
       params.push(endDate);
     }
 
-    // Get total count
-    const countResult = await pool.query(
-      `SELECT COUNT(*) FROM events ${whereClause}`,
-      params
-    );
-    const total = parseInt(countResult.rows[0].count);
+    const cacheKey = JSON.stringify({ user: req.user.id, q: req.query, page, limit, offset })
+    const { data: cachedData, cached } = await cache.wrap('events:list', cacheKey, 30, async () => {
+      const countResult = await pool.query(
+        `SELECT COUNT(*) FROM events ${whereClause}`,
+        params
+      );
+      const total = parseInt(countResult.rows[0].count);
 
-    // Get events with organizer info
-    const eventsResult = await pool.query(`
-      SELECT e.*, u.first_name as organizer_first_name, u.last_name as organizer_last_name, u.email as organizer_email
-      FROM events e
-      LEFT JOIN users u ON e.organizer_id = u.id
-      ${whereClause}
-      ORDER BY e.start_date ASC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
-    `, [...params, limit, offset]);
+      const eventsResult = await pool.query(`
+        SELECT e.*, u.first_name as organizer_first_name, u.last_name as organizer_last_name, u.email as organizer_email
+        FROM events e
+        LEFT JOIN users u ON e.organizer_id = u.id
+        ${whereClause}
+        ORDER BY e.start_date ASC
+        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+      `, [...params, limit, offset]);
 
+      return {
+        events: eventsResult.rows,
+        total
+      }
+    })
+
+    if (cached) res.set('X-Cache', 'HIT')
     res.json({
       success: true,
       data: {
-        events: eventsResult.rows.map(event => ({
+        events: cachedData.events.map(event => ({
           id: event.id,
           title: event.title,
           description: event.description,
@@ -116,8 +124,8 @@ router.get('/', authenticate, [
         pagination: {
           page,
           limit,
-          total,
-          pages: Math.ceil(total / limit)
+          total: cachedData.total,
+          pages: Math.ceil(cachedData.total / limit)
         }
       }
     });

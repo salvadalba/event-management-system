@@ -8,55 +8,53 @@ const router = express.Router();
 // Get system overview analytics (super admin only)
 router.get('/overview', authenticate, authorize('super_admin'), async (req, res) => {
   try {
-    // Get total counts
-    const [
-      eventsResult,
-      usersResult,
-      registrationsResult,
-      revenueResult
-    ] = await Promise.all([
-      pool.query('SELECT COUNT(*) as count FROM events'),
-      pool.query('SELECT COUNT(*) as count FROM users'),
-      pool.query('SELECT COUNT(*) as count FROM registrations WHERE status != \'cancelled\''),
-      pool.query('SELECT COALESCE(SUM(total_amount), 0) as total FROM registrations WHERE payment_status = \'paid\'')
-    ]);
+    const cache = require('../utils/cache')
+    const { data: cachedData, cached } = await cache.wrap('analytics:overview', 'global', 60, async () => {
+      const [
+        eventsResult,
+        usersResult,
+        registrationsResult,
+        revenueResult
+      ] = await Promise.all([
+        pool.query('SELECT COUNT(*) as count FROM events'),
+        pool.query('SELECT COUNT(*) as count FROM users'),
+        pool.query('SELECT COUNT(*) as count FROM registrations WHERE status != \'cancelled\''),
+        pool.query('SELECT COALESCE(SUM(total_amount), 0) as total FROM registrations WHERE payment_status = \'paid\'')
+      ])
 
-    const totalEvents = parseInt(eventsResult.rows[0].count);
-    const totalUsers = parseInt(usersResult.rows[0].count);
-    const totalRegistrations = parseInt(registrationsResult.rows[0].count);
-    const totalRevenue = parseFloat(revenueResult.rows[0].total);
+      const recentEventsResult = await pool.query(`
+        SELECT id, title, created_at
+        FROM events
+        ORDER BY created_at DESC
+        LIMIT 5
+      `)
 
-    // Get recent activity
-    const recentEventsResult = await pool.query(`
-      SELECT id, title, created_at
-      FROM events
-      ORDER BY created_at DESC
-      LIMIT 5
-    `);
+      const recentRegistrationsResult = await pool.query(`
+        SELECT r.id, r.first_name, r.last_name, r.email, e.title as event_title, r.created_at
+        FROM registrations r
+        JOIN events e ON r.event_id = e.id
+        ORDER BY r.created_at DESC
+        LIMIT 5
+      `)
 
-    const recentRegistrationsResult = await pool.query(`
-      SELECT r.id, r.first_name, r.last_name, r.email, e.title as event_title, r.created_at
-      FROM registrations r
-      JOIN events e ON r.event_id = e.id
-      ORDER BY r.created_at DESC
-      LIMIT 5
-    `);
-
-    res.json({
-      success: true,
-      data: {
+      return {
         totals: {
-          events: totalEvents,
-          users: totalUsers,
-          registrations: totalRegistrations,
-          revenue: totalRevenue
+          events: parseInt(eventsResult.rows[0].count),
+          users: parseInt(usersResult.rows[0].count),
+          registrations: parseInt(registrationsResult.rows[0].count),
+          revenue: parseFloat(revenueResult.rows[0].total)
         },
         recentActivity: {
           events: recentEventsResult.rows,
           registrations: recentRegistrationsResult.rows
         }
       }
-    });
+    })
+    if (cached) res.set('X-Cache', 'HIT')
+    res.json({
+      success: true,
+      data: cachedData
+    })
   } catch (error) {
     console.error('Get overview analytics error:', error);
     res.status(500).json({
