@@ -68,6 +68,8 @@ let tickets = [
   }
 ];
 
+let communications = [];
+
 // Mock events data
 const events = [
   {
@@ -775,6 +777,122 @@ app.get('/api/registrations/:id', authenticate, (req, res) => {
       error: 'Server error'
     });
   }
+});
+
+app.post('/api/registrations/:id/checkin', authenticate, (req, res) => {
+  try {
+    const { id } = req.params;
+    const registrationIndex = registrations.findIndex(r => r.id === id);
+    if (registrationIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        error: 'Registration not found'
+      });
+    }
+    const updated = { ...registrations[registrationIndex], status: 'checked_in', checkedIn: true, checkedInAt: new Date().toISOString() };
+    registrations[registrationIndex] = updated;
+    const event = events.find(e => e.id === updated.eventId) || null;
+    const user = users.find(u => u.id === updated.userId) || null;
+    const ticket = tickets.find(t => t.id === updated.ticketId) || null;
+    res.json({
+      success: true,
+      message: 'Attendee checked in successfully',
+      data: {
+        ...updated,
+        event,
+        user: user ? { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email } : null,
+        ticket
+      }
+    });
+  } catch (error) {
+    console.error('Check-in error:', error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+app.get('/api/communications', authenticate, (req, res) => {
+  res.json({ success: true, data: communications });
+});
+
+app.get('/api/communications/:id', authenticate, (req, res) => {
+  const c = communications.find(x => x.id === req.params.id);
+  if (!c) return res.status(404).json({ success: false, error: 'Not found' });
+  res.json({ success: true, data: c });
+});
+
+app.post('/api/communications', authenticate, (req, res) => {
+  const { subject, type, recipientType, content, eventId, customRecipients = [], scheduledAt } = req.body;
+  const id = String(communications.length + 1);
+  const created = {
+    id,
+    subject: subject || '',
+    type: type || 'email',
+    recipientType: recipientType || 'all',
+    content: content || '',
+    event: eventId ? { id: eventId, title: (events.find(e => e.id === eventId) || {}).title || '' } : undefined,
+    scheduledAt: scheduledAt || null,
+    sentAt: null,
+    status: scheduledAt ? 'scheduled' : 'draft',
+    createdAt: new Date().toISOString(),
+    stats: {
+      totalRecipients: Array.isArray(customRecipients) ? customRecipients.length : 0,
+      sentCount: 0,
+      deliveredCount: 0,
+      openedCount: 0,
+      clickedCount: 0,
+    },
+  };
+  communications.push(created);
+  res.status(201).json({ success: true, data: created });
+});
+
+app.put('/api/communications/:id', authenticate, (req, res) => {
+  const idx = communications.findIndex(x => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+  const current = communications[idx];
+  const updated = { ...current, ...req.body };
+  communications[idx] = updated;
+  res.json({ success: true, data: updated });
+});
+
+app.delete('/api/communications/:id', authenticate, (req, res) => {
+  const idx = communications.findIndex(x => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+  communications.splice(idx, 1);
+  res.json({ success: true, message: 'Deleted' });
+});
+
+app.post('/api/communications/:id/schedule', authenticate, (req, res) => {
+  const idx = communications.findIndex(x => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+  communications[idx].scheduledAt = req.body.scheduledAt || new Date().toISOString();
+  communications[idx].status = 'scheduled';
+  res.json({ success: true, data: communications[idx] });
+});
+
+app.post('/api/communications/:id/send', authenticate, (req, res) => {
+  const idx = communications.findIndex(x => x.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ success: false, error: 'Not found' });
+  const c = communications[idx];
+  let total = 0;
+  if (c.recipientType === 'all') {
+    total = registrations.length;
+  } else if (c.recipientType === 'event' && c.event?.id) {
+    total = registrations.filter(r => r.eventId === c.event.id).length;
+  }
+  communications[idx] = {
+    ...c,
+    status: 'sent',
+    sentAt: new Date().toISOString(),
+    stats: {
+      totalRecipients: total || c.stats.totalRecipients,
+      sentCount: total || c.stats.sentCount,
+      deliveredCount: total || c.stats.deliveredCount,
+      openedCount: Math.min(total, Math.floor((total || 10) * 0.6)),
+      clickedCount: Math.min(total, Math.floor((total || 10) * 0.2)),
+    }
+  };
+  res.json({ success: true, message: 'Sent', data: communications[idx] });
 });
 
 // Tickets endpoints

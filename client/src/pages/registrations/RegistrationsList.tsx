@@ -26,7 +26,7 @@ interface Registration {
     price: number
     currency: string
   }
-  attendee: {
+  user: {
     id: string
     firstName: string
     lastName: string
@@ -56,8 +56,10 @@ const RegistrationsList: React.FC = () => {
         eventsAPI.getAll()
       ])
 
-      setRegistrations(registrationsResponse.data || [])
-      setEvents(eventsResponse.data || [])
+      const regs = registrationsResponse?.data?.registrations || registrationsResponse?.data || []
+      const evts = eventsResponse?.data?.events || eventsResponse?.data || []
+      setRegistrations(Array.isArray(regs) ? regs : [])
+      setEvents(Array.isArray(evts) ? evts : [])
     } catch (error: any) {
       console.error('Fetch data error:', error)
       toast.error('Failed to load registrations')
@@ -131,9 +133,9 @@ const RegistrationsList: React.FC = () => {
     if (filter.search) {
       const searchLower = filter.search.toLowerCase()
       return (
-        registration.attendee.firstName.toLowerCase().includes(searchLower) ||
-        registration.attendee.lastName.toLowerCase().includes(searchLower) ||
-        registration.attendee.email.toLowerCase().includes(searchLower) ||
+        (registration.user?.firstName || '').toLowerCase().includes(searchLower) ||
+        (registration.user?.lastName || '').toLowerCase().includes(searchLower) ||
+        (registration.user?.email || '').toLowerCase().includes(searchLower) ||
         registration.event.title.toLowerCase().includes(searchLower)
       )
     }
@@ -251,10 +253,10 @@ const RegistrationsList: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {registration.attendee.firstName} {registration.attendee.lastName}
+                          {(registration.user?.firstName || '')} {(registration.user?.lastName || '')}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {registration.attendee.email}
+                          {registration.user?.email || ''}
                         </div>
                       </div>
                     </td>
