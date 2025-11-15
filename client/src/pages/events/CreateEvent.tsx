@@ -24,6 +24,7 @@ interface EventFormData {
 const CreateEvent: React.FC = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
   const [formData, setFormData] = useState<EventFormData>({
     title: '',
     description: '',
@@ -86,21 +87,21 @@ const CreateEvent: React.FC = () => {
     }))
   }
 
+  const nextStep = () => setStep((s) => (s < 4 ? ((s + 1) as 1 | 2 | 3 | 4) : s))
+  const prevStep = () => setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3 | 4) : s))
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!formData.title || !formData.description || !formData.startDate || !formData.endDate) {
+    if (!formData.title || !formData.description || !formData.startDate || !formData.endDate || !formData.venue.name || !formData.venue.city || !formData.venue.address || !formData.venue.country) {
       toast.error('Please fill in all required fields')
       return
     }
-
     try {
       setLoading(true)
       await eventsAPI.create(formData)
       toast.success('Event created successfully!')
       navigate('/events')
     } catch (error: any) {
-      console.error('Create event error:', error)
       toast.error(error.error || 'Failed to create event')
     } finally {
       setLoading(false)
@@ -116,7 +117,19 @@ const CreateEvent: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
         <div className="bg-white shadow rounded-lg p-6 space-y-6">
-          {/* Basic Information */}
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600">Step {step} of 4</div>
+            <div className="flex gap-2">
+              {step > 1 && (
+                <button type="button" className="btn btn-secondary" onClick={prevStep}>Back</button>
+              )}
+              {step < 4 && (
+                <button type="button" className="btn btn-primary" onClick={nextStep}>Next</button>
+              )}
+            </div>
+          </div>
+
+          {step === 1 && (
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -157,8 +170,9 @@ const CreateEvent: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Venue Information */}
+          {step === 2 && (
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Venue Information</h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -211,8 +225,9 @@ const CreateEvent: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Event Details */}
+          {step === 3 && (
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Event Details</h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -267,8 +282,9 @@ const CreateEvent: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Tags */}
+          {step === 4 && (
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Tags</h3>
             <div className="space-y-3">
@@ -309,8 +325,9 @@ const CreateEvent: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Options */}
+          {step === 4 && (
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Options</h3>
             <div className="space-y-3">
@@ -326,8 +343,8 @@ const CreateEvent: React.FC = () => {
               </label>
             </div>
           </div>
+          )}
 
-          {/* Actions */}
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
             <button
               type="button"
