@@ -23,6 +23,7 @@ const notFound = require('./middleware/notFound');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+app.set('trust proxy', 1);
 
 // Security middleware
 app.use(helmet({
@@ -41,11 +42,15 @@ app.set('etag', 'strong');
 
 app.use((req, res, next) => {
   const start = process.hrtime.bigint();
-  res.on('finish', () => {
-    const end = process.hrtime.bigint();
-    const ms = Number(end - start) / 1e6;
-    res.setHeader('X-Response-Time', `${ms.toFixed(2)}ms`);
-  });
+  const originalEnd = res.end;
+  res.end = function (...args) {
+    try {
+      const end = process.hrtime.bigint();
+      const ms = Number(end - start) / 1e6;
+      res.setHeader('X-Response-Time', `${ms.toFixed(2)}ms`);
+    } catch (_) {}
+    return originalEnd.apply(this, args);
+  };
   next();
 });
 app.use(cors({
@@ -54,14 +59,22 @@ app.use(cors({
 }));
 
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many requests from this IP, please try again later.'
-  }
+const generalLimiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again later.' }
 });
-app.use('/api/', limiter);
+const authLimiter = rateLimit({
+  windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS) || 10 * 60 * 1000,
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS) || 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many auth attempts, please try again later.' }
+});
+app.use('/api/auth', authLimiter);
+app.use('/api/', generalLimiter);
 
 // General middleware
 app.use(morgan('combined'));
@@ -94,10 +107,12 @@ app.get('/api/health', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+// Start server (skip when running tests)
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
+}
 
 module.exports = app;
