@@ -17,6 +17,7 @@ const paymentRoutes = require('./routes/payments');
 const checkinRoutes = require('./routes/checkin');
 const communicationRoutes = require('./routes/communications');
 const analyticsRoutes = require('./routes/analytics');
+const publicRoutes = require('./routes/public');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -106,6 +107,7 @@ app.use('/api/payments', paymentRoutes);
 app.use('/api/checkin', checkinRoutes);
 app.use('/api/communications', communicationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/public', publicRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

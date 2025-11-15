@@ -273,4 +273,9 @@ export const analyticsAPI = {
     apiService.get('/analytics/export', { params }),
 }
 
+export const publicAPI = {
+  getEvents: (params?: any) =>
+    apiService.get('/public/events', { params }),
+}
+
 export default apiService

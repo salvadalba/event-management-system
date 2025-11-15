@@ -15,6 +15,7 @@ import Dashboard from './pages/Dashboard'
 import EventsList from './pages/events/EventsList'
 import EventDetail from './pages/events/EventDetail'
 import CreateEvent from './pages/events/CreateEvent'
+import PublicEvents from './pages/events/PublicEvents'
 import EditEvent from './pages/events/EditEvent'
 import RegistrationsList from './pages/registrations/RegistrationsList'
 import RegistrationDetail from './pages/registrations/RegistrationDetail'
@@ -75,6 +76,7 @@ const AppWithLayout: React.FC = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/browse" element={<PublicEvents />} />
       </Routes>
     </Layout>
   )
