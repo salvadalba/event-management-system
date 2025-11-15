@@ -71,10 +71,17 @@ router.post('/register', [
       { expiresIn: process.env.JWT_EXPIRE }
     );
 
+    const refreshJti = uuidv4();
     const refreshToken = jwt.sign(
-      { id: user.id },
+      { id: user.id, jti: refreshJti },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: process.env.JWT_REFRESH_EXPIRE }
+    );
+
+    const decodedRefresh = jwt.decode(refreshToken);
+    await pool.query(
+      'INSERT INTO refresh_tokens (id, user_id, expires_at, revoked) VALUES ($1, $2, to_timestamp($3), false)',
+      [refreshJti, user.id, decodedRefresh.exp]
     );
 
     res.status(201).json({
@@ -166,10 +173,17 @@ router.post('/login', [
       { expiresIn: process.env.JWT_EXPIRE }
     );
 
+    const refreshJti = uuidv4();
     const refreshToken = jwt.sign(
-      { id: user.id },
+      { id: user.id, jti: refreshJti },
       process.env.JWT_REFRESH_SECRET,
       { expiresIn: process.env.JWT_REFRESH_EXPIRE }
+    );
+
+    const decodedRefresh = jwt.decode(refreshToken);
+    await pool.query(
+      'INSERT INTO refresh_tokens (id, user_id, expires_at, revoked) VALUES ($1, $2, to_timestamp($3), false)',
+      [refreshJti, user.id, decodedRefresh.exp]
     );
 
     res.json({
@@ -210,6 +224,26 @@ router.post('/refresh', async (req, res) => {
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
+    const tokenRecordResult = await pool.query(
+      'SELECT id, user_id, expires_at, revoked FROM refresh_tokens WHERE id = $1 AND user_id = $2',
+      [decoded.jti, decoded.id]
+    );
+
+    if (tokenRecordResult.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid refresh token'
+      });
+    }
+
+    const tokenRecord = tokenRecordResult.rows[0];
+    if (tokenRecord.revoked || new Date(tokenRecord.expires_at) < new Date()) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid refresh token'
+      });
+    }
+
     // Get user from database
     const result = await pool.query(
       'SELECT id, email, first_name, last_name, role, is_active FROM users WHERE id = $1',
@@ -231,11 +265,27 @@ router.post('/refresh', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRE }
     );
+    const newRefreshJti = uuidv4();
+    const newRefreshToken = jwt.sign(
+      { id: user.id, jti: newRefreshJti },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: process.env.JWT_REFRESH_EXPIRE }
+    );
+    const newDecodedRefresh = jwt.decode(newRefreshToken);
+
+    await pool.query(
+      'UPDATE refresh_tokens SET revoked = true, replaced_by = $1 WHERE id = $2',
+      [newRefreshJti, decoded.jti]
+    );
+    await pool.query(
+      'INSERT INTO refresh_tokens (id, user_id, expires_at, revoked) VALUES ($1, $2, to_timestamp($3), false)',
+      [newRefreshJti, user.id, newDecodedRefresh.exp]
+    );
 
     res.json({
       success: true,
       message: 'Token refreshed successfully',
-      data: { token }
+      data: { token, refreshToken: newRefreshToken }
     });
   } catch (error) {
     res.status(401).json({
