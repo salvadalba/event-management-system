@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const { pool } = require('../config/database');
+const sanitize = require('../utils/sanitize');
 const { authenticate, authorize, checkEventOwnership } = require('../middleware/auth');
 
 const router = express.Router();
@@ -144,6 +145,9 @@ router.post('/', authenticate, authorize('event_manager', 'super_admin'), [
       scheduledAt, campaignName, tags
     } = req.body;
 
+    const safeSubject = sanitize(subject);
+    const safeContent = sanitize(content);
+
     // Check event ownership if eventId is provided
     if (eventId) {
       const eventResult = await pool.query(
@@ -230,7 +234,7 @@ router.post('/', authenticate, authorize('event_manager', 'super_admin'), [
       RETURNING *
     `, [
       communicationId, eventId, req.user.id, recipientType, ticketTypeId,
-      subject, content, scheduledAt, status, recipientCount,
+      safeSubject, safeContent, scheduledAt, status, recipientCount,
       campaignName, tags
     ]);
 

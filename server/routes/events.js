@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult, query } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const { pool } = require('../config/database');
+const sanitize = require('../utils/sanitize');
 const { authenticate, authorize, checkEventOwnership } = require('../middleware/auth');
 
 const router = express.Router();
@@ -262,6 +263,9 @@ router.post('/', authenticate, authorize('event_manager', 'super_admin'), [
       contactEmail, contactPhone, checkinEnabled, requiresApproval
     } = req.body;
 
+    const safeDescription = sanitize(description);
+    const safeShortDescription = sanitize(shortDescription);
+
     const eventId = uuidv4();
 
     const result = await pool.query(`
@@ -278,7 +282,7 @@ router.post('/', authenticate, authorize('event_manager', 'super_admin'), [
       )
       RETURNING *
     `, [
-      eventId, title, description, shortDescription, req.user.id,
+      eventId, title, safeDescription, safeShortDescription, req.user.id,
       venue.name, venue.address, venue.city, venue.state || null, venue.country, venue.postalCode || null,
       startDate, endDate, maxAttendees || null, tags || null, agenda || null, registrationDeadline || null,
       socialLinks || null, contactEmail || null, contactPhone || null, checkinEnabled !== false, requiresApproval || false
@@ -351,6 +355,8 @@ router.put('/:id', authenticate, checkEventOwnership, [
 
     const { id } = req.params;
     const updates = req.body;
+    if (updates.description !== undefined) updates.description = sanitize(updates.description);
+    if (updates.shortDescription !== undefined) updates.shortDescription = sanitize(updates.shortDescription);
 
     // Build update query
     const updateFields = [];
