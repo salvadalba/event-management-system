@@ -343,13 +343,17 @@ router.post('/:id/send', authenticate, authorize('event_manager', 'super_admin')
     const recRes = await pool.query(recipientsQuery, recipientsParams)
     let sentCount = 0
 
+    const baseUrl = process.env.PUBLIC_BASE_URL || 'http://localhost:5000'
     for (const r of recRes.rows) {
       try {
+        const trackingId = require('uuid').v4()
+        const pixel = `<img src="${baseUrl}/api/tracking/open/${trackingId}" width="1" height="1" style="display:none" />`
+        const htmlContent = `${communication.content}${pixel}`
         await transporter.sendMail({
           from: `${process.env.FROM_NAME || 'Event Management System'} <${process.env.FROM_EMAIL}>`,
           to: r.email,
           subject: communication.subject,
-          html: communication.content
+          html: htmlContent
         })
         sentCount++
         const regIdRes = await pool.query(
@@ -358,9 +362,9 @@ router.post('/:id/send', authenticate, authorize('event_manager', 'super_admin')
         )
         const regId = regIdRes.rows[0]?.id || null
         await pool.query(
-          `INSERT INTO communication_logs (communication_id, registration_id, recipient_email, recipient_name, status, sent_at)
-           VALUES ($1, $2, $3, $4, 'sent', CURRENT_TIMESTAMP)`,
-          [id, regId, r.email, `${r.first_name || ''} ${r.last_name || ''}`.trim() || null]
+          `INSERT INTO communication_logs (communication_id, registration_id, recipient_email, recipient_name, status, sent_at, tracking_id)
+           VALUES ($1, $2, $3, $4, 'sent', CURRENT_TIMESTAMP, $5)`,
+          [id, regId, r.email, `${r.first_name || ''} ${r.last_name || ''}`.trim() || null, trackingId]
         )
       } catch (_) {}
     }

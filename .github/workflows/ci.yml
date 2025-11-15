@@ -35,3 +35,9 @@ jobs:
 
       - name: Server tests
         run: npm test -- --ci
+
+      - name: Setup Playwright
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests (public page only)
+        run: npx playwright test
